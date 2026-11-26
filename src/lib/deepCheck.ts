@@ -57,12 +57,27 @@ export async function runDeepCheck(
           { timeout: TIMEOUT_MS },
         );
 
-  // If the main model stays overloaded after retries, try the fallback model once.
-  const result = await withRetry(call(opts.model)).catch((e) => {
-    if (!opts.fallbackModel || opts.templateId) throw e;
-    console.warn(`Deep check: ${opts.model} failed, trying ${opts.fallbackModel}`, e);
-    return withRetry(call(opts.fallbackModel), 2);
-  });
+  // Try each model in turn (main, then the comma-separated fallbacks) while Gemini is overloaded.
+  const models = opts.templateId
+    ? [opts.model]
+    : [opts.model, ...(opts.fallbackModel ?? "").split(",").map((m) => m.trim()).filter(Boolean)];
+  let result: GenerateContentResult | undefined;
+  let lastError: unknown;
+  for (const model of models) {
+    try {
+      result = await withRetry(call(model), 2);
+      break;
+    } catch (e) {
+      lastError = e;
+      console.warn(`Deep check: ${model} failed`, e);
+    }
+  }
+  if (!result) {
+    const msg = String((lastError as Error)?.message ?? lastError);
+    throw new Error(
+      /timeout|429|500|503|high demand|overloaded/i.test(msg) ? "Gemini is busy right now. Try again in a minute." : msg,
+    );
+  }
   const parsed = parseVerdictJson(result.response.text());
   const cand = result.response.candidates?.[0];
   const searched = (cand?.groundingMetadata?.groundingChunks ?? []).map((c) => ({

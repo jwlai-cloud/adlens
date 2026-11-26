@@ -23,6 +23,7 @@
     "@types/dom-chromium-ai": "^0.0.18",
     "firebase-tools": "^15.37.0",
     "happy-dom": "^21.0.4",
+    "playwright": "^1.65.1",
     "typescript": "^5.9.3",
     "vite": "^8.3.8",
     "vitest": "^5.1.1"

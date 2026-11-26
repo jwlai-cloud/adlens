@@ -37,10 +37,10 @@
     },
     "deep_check_fallback_model": {
       "defaultValue": {
-        "value": "gemini-3.8-flash"
+        "value": "gemini-3.8-flash,gemini-3.5-flash-lite"
       },
       "valueType": "STRING",
-      "description": "Used if the deep check model stays overloaded after retries"
+      "description": "Comma-separated models tried in order if the deep check model is overloaded"
     },
     "deep_check_search": {
       "defaultValue": {

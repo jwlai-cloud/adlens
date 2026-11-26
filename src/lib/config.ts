@@ -5,7 +5,8 @@ import { fetchAndActivate, getRemoteConfig, getValue } from "firebase/remote-con
 export const DEFAULTS = {
   triage_cloud_model: "gemini-3.5-flash-lite",
   deep_check_model: "gemini-4-hydrogen",
-  deep_check_fallback_model: "gemini-3.8-flash",
+  /** Comma-separated, tried in order if the main model is overloaded. */
+  deep_check_fallback_model: "gemini-3.8-flash,gemini-3.5-flash-lite",
   deep_check_template_id: "",
   /** Google Search grounding needs a billing-enabled project; free tier returns 429. */
   deep_check_search: false,

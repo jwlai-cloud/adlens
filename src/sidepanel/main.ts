@@ -30,6 +30,8 @@ let runId = 0;
 let current: Check | null = null;
 // ponytail: per-session in-memory cache; chrome.storage.session if checks should survive panel reloads.
 const cache = new Map<string, Check>();
+// Demo/recording only: sidepanel.html?tabId=N opened in its own window watches tab N instead of the active tab.
+const pinnedTab = Number(new URLSearchParams(location.search).get("tabId")) || null;
 
 const LABELS: Record<Verdict, { icon: string; title: string }> = {
   safe: { icon: "✓", title: "Looks legit" },
@@ -175,8 +177,11 @@ $("nano-download").addEventListener("click", async () => {
 // ---------- checks ----------
 
 async function checkActiveTab() {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const [tab] = pinnedTab
+    ? [await chrome.tabs.get(pinnedTab).catch(() => undefined)]
+    : await chrome.tabs.query({ active: true, currentWindow: true });
   const id = ++runId;
+  $("community").hidden = true; // "Added to the blocklist" note belongs to the previous page
   if (!tab?.id || !tab.url || !/^https?:/.test(tab.url)) {
     current = null;
     $("site").textContent = "—";
@@ -297,7 +302,7 @@ async function boot() {
 
   chrome.tabs.onActivated.addListener(() => void checkActiveTab());
   chrome.tabs.onUpdated.addListener((_id, info, tab) => {
-    if (info.status === "complete" && tab.active) {
+    if (info.status === "complete" && (pinnedTab ? _id === pinnedTab : tab.active)) {
       if (tab.url) cache.delete(tab.url);
       void checkActiveTab();
     }

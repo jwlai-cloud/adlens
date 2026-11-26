@@ -23,8 +23,10 @@
       ← first live check of Nano in the extension side panel (the plan's biggest risk)
 - [ ] Optional: create + lock the server prompt template, set `deep_check_template_id`
 - [x] Dev App Check token rotated (old one revoked); judges' zip uses its own token
-- [ ] **After Dec 16:** revoke the token named "AdLens judges build (revoke after Dec 16)": `npx firebase appcheck:debugtokens:list --app <appId>` then `:delete`
+- [ ] **After Dec 16:** revoke the token named "AdLens judges v0.1.0b (revoke after Dec 16)": `npx firebase appcheck:debugtokens:list --app <appId>` then `:delete`
 - [x] Test blocklist entry cleared
 - [x] Public repo https://github.com/jwlai-cloud/adlens (Apache-2.0 detected), release v0.1.0 with zip
-- [ ] Record video (docs/VIDEO.md), upload to YouTube by Sun Nov 29
+- [x] Draft video: `video/adlens-demo-draft.mp4` (71 s, captions, cloud path; re-make with `node scripts/record-demo.mjs` + `python3 scripts/make-video.py`)
+- [ ] Optional: re-record with real Chrome + Nano for the On-device badge, add voice-over
+- [ ] Upload video to YouTube (public) by Sun Nov 29
 - [ ] Devpost form (docs/SUBMISSION.md), submit by Mon Nov 30 12:00 PM PT
