@@ -1,0 +1,12 @@
+node_modules
+dist
+adlens.zip
+.env.local
+.env.*.local
+firebase-debug.log
+.firebase
+firestore-debug.log
+ui-debug.log
+
+# private notes (not for the public repo)
+docs/brainstorm.md

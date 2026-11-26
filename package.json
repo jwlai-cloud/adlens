@@ -1,0 +1,30 @@
+{
+  "name": "adlens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hybrid on-device + cloud scam checker for shopping ads, built with Firebase AI Logic.",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "watch": "vite build --watch",
+    "fixtures": "vite --config vite.fixtures.config.ts",
+    "test": "vitest run",
+    "zip": "npm run build && cd dist && zip -qr ../adlens.zip .",
+    "test:rules": "firebase emulators:exec --project demo-adlens --only firestore,auth \"vitest run src/lib/blocklist.rules.test.ts\"",
+    "preview": "vite preview --port 4173 --strictPort",
+    "dev": "vite --port 5175 --strictPort"
+  },
+  "dependencies": {
+    "firebase": "^13.4.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.3.8",
+    "@types/dom-chromium-ai": "^0.0.18",
+    "firebase-tools": "^15.37.0",
+    "happy-dom": "^21.0.4",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.1"
+  }
+}

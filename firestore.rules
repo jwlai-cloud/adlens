@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Shared blocklist: anyone can read; signed-in (anonymous) users can add
+    // exactly one report at a time, with a fixed shape.
+    match /domains/{key} {
+      function valid() {
+        let d = request.resource.data;
+        return key.size() <= 200
+          && d.keys().hasOnly(['verdict', 'reasons', 'reports', 'updatedAt'])
+          && d.verdict in ['suspicious', 'scam']
+          && d.reasons is list && d.reasons.size() <= 3
+          && d.updatedAt == request.time;
+      }
+      allow read: if true;
+      allow create: if request.auth != null && valid() && request.resource.data.reports == 1;
+      allow update: if request.auth != null && valid()
+        && request.resource.data.reports == resource.data.reports + 1;
+      allow delete: if false;
+    }
+  }
+}

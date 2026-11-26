@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "AdLens: is this shop real?",
+  "short_name": "AdLens",
+  "version": "0.1.0",
+  "description": "Checks the shop or ad page you're on for scams. Gemini Nano on-device first, Gemini in the cloud only when needed.",
+  "minimum_chrome_version": "139",
+  "permissions": ["sidePanel", "scripting", "tabs", "storage"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "AdLens: check this shop" },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+}

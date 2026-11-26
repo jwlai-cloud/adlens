@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AdLens</title>
+    <link rel="stylesheet" href="/src/sidepanel/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand"><span class="logo" aria-hidden="true"></span>AdLens</div>
+      <label class="toggle" title="Never send anything to the cloud">
+        <input type="checkbox" id="privacy" />
+        <span>On-device only</span>
+      </label>
+    </header>
+
+    <section id="nano" class="nano" hidden>
+      <div class="nano-text" id="nano-text"></div>
+      <button id="nano-download" class="btn ghost" hidden>Download on-device model</button>
+      <progress id="nano-progress" max="1" value="0" hidden></progress>
+    </section>
+
+    <main>
+      <div class="site">
+        <span class="site-label">Checking</span>
+        <span id="site" class="site-host">—</span>
+      </div>
+
+      <section id="verdict" class="card verdict idle" aria-live="polite">
+        <div class="verdict-head">
+          <span id="verdict-icon" class="verdict-icon" aria-hidden="true"></span>
+          <div>
+            <h1 id="verdict-title">Open a shop or ad page</h1>
+            <p id="verdict-sub" class="muted">AdLens checks the current tab automatically.</p>
+          </div>
+        </div>
+        <ul id="reasons" class="reasons"></ul>
+        <div id="meta" class="meta"></div>
+      </section>
+
+      <section id="community" class="card community" hidden></section>
+
+      <section id="deep" class="card deep" hidden>
+        <div class="deep-head">
+          <div>
+            <h2>Deep check</h2>
+            <p class="muted">Gemini in the cloud opens the page itself, as a first-time visitor would, and looks for scam patterns. Sends the URL, title, red flags and a short excerpt, with personal data removed.</p>
+          </div>
+          <button id="deep-btn" class="btn">Run deep check</button>
+        </div>
+        <div id="deep-result"></div>
+      </section>
+
+      <details id="flags" class="card flags" hidden>
+        <summary>Automated red flags <span id="flag-score" class="pill"></span></summary>
+        <ul id="flag-list"></ul>
+      </details>
+
+      <p id="error" class="error" hidden></p>
+    </main>
+
+    <footer class="foot">Gemini Nano on-device first · Gemini in the cloud when needed · Firebase AI Logic</footer>
+
+    <script type="module" src="/src/sidepanel/main.ts"></script>
+  </body>
+</html>

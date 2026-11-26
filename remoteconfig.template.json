@@ -1,0 +1,53 @@
+{
+  "parameters": {
+    "triage_cloud_model": {
+      "defaultValue": {
+        "value": "gemini-3.5-flash-lite"
+      },
+      "valueType": "STRING",
+      "description": "Cloud fallback model for triage when Gemini Nano isn't available"
+    },
+    "deep_check_model": {
+      "defaultValue": {
+        "value": "gemini-4-hydrogen"
+      },
+      "valueType": "STRING",
+      "description": "Model for the deep check (URL context; used when no template ID is set)"
+    },
+    "deep_check_template_id": {
+      "defaultValue": {
+        "value": ""
+      },
+      "valueType": "STRING",
+      "description": "Server prompt template ID for the deep check. Empty = send the prompt from the client"
+    },
+    "flag_threshold": {
+      "defaultValue": {
+        "value": "45"
+      },
+      "valueType": "NUMBER",
+      "description": "Heuristic risk score at which a 'safe' model verdict is raised to 'suspicious'"
+    },
+    "auto_deep_check": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "Run the deep check automatically on suspicious pages"
+    },
+    "deep_check_fallback_model": {
+      "defaultValue": {
+        "value": "gemini-3.8-flash"
+      },
+      "valueType": "STRING",
+      "description": "Used if the deep check model stays overloaded after retries"
+    },
+    "deep_check_search": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "valueType": "BOOLEAN",
+      "description": "Add Google Search grounding to the deep check. Needs a billing-enabled project (free tier returns 429)"
+    }
+  }
+}
