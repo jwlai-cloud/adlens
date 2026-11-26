@@ -52,6 +52,16 @@ Tab loads ──► content extract (in page) ──► rule-based red flags (0�
 ### Why a side panel
 Chrome's Prompt API (Gemini Nano) isn't available in workers, so the extension's service worker only opens the panel. All AI runs in the side panel page.
 
+## Quick test (judges)
+
+1. Download `adlens-chrome-v0.1.0.zip` from the [latest release](https://github.com/jwlai-cloud/adlens/releases/latest) and unzip it.
+2. Go to `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and pick the unzipped folder.
+3. Click the AdLens toolbar icon to open the side panel, then browse to any shop.
+4. Demo pages: clone this repo, run `npm install && npm run fixtures`, and open http://localhost:5174/.
+5. Optional, for on-device inference: enable Gemini Nano in `chrome://flags` (see step 3 under "Load in Chrome" below). Without it, AdLens uses the cloud model and the badge says **Cloud**.
+
+The release build connects to our Firebase project with a judging-only App Check debug token, which we'll revoke after judging.
+
 ## Run it
 
 Requirements: Node 20+, Chrome 139+ on desktop, and a Firebase project on the free Spark plan.

@@ -22,8 +22,9 @@
 - [ ] Load `dist/` unpacked in Chrome, enable Nano flag, run the 3 demo pages
       ← first live check of Nano in the extension side panel (the plan's biggest risk)
 - [ ] Optional: create + lock the server prompt template, set `deep_check_template_id`
-- [ ] Before release: rotate the dev App Check token (it appeared in console logs) and make a separate one for the judges' zip
-- [ ] Before recording: clear test entry `domains/localhost|fake-shop.html` so the first visit shows the AI verdict
-- [ ] Public GitHub repo (license visible in About), release with zip
+- [x] Dev App Check token rotated (old one revoked); judges' zip uses its own token
+- [ ] **After Dec 16:** revoke the token named "AdLens judges build (revoke after Dec 16)": `npx firebase appcheck:debugtokens:list --app <appId>` then `:delete`
+- [x] Test blocklist entry cleared
+- [x] Public repo https://github.com/jwlai-cloud/adlens (Apache-2.0 detected), release v0.1.0 with zip
 - [ ] Record video (docs/VIDEO.md), upload to YouTube by Sun Nov 29
 - [ ] Devpost form (docs/SUBMISSION.md), submit by Mon Nov 30 12:00 PM PT

@@ -10,3 +10,5 @@ ui-debug.log
 
 # private notes (not for the public repo)
 docs/brainstorm.md
+dist-judges
+*.zip
