@@ -100,6 +100,10 @@
           <button id="btn-mic" class="mic" aria-pressed="false"><span class="ic ic-mic" aria-hidden="true"></span><span id="mic-label">Start talking</span></button>
           <p id="mic-status" class="muted">Voice runs in the cloud with Gemini Live.</p>
         </div>
+        <form id="type-form" class="type-form">
+          <input id="type-input" type="text" placeholder="Or type your question" aria-label="Type your question" />
+          <button class="btn" type="submit">Send</button>
+        </form>
         <label class="cam-toggle"><input type="checkbox" id="live-cam" /> Let AdLens see through the camera</label>
         <video id="live-video" class="live-video" playsinline muted hidden></video>
         <div id="feed" class="feed" aria-live="polite"></div>

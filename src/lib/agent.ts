@@ -156,3 +156,99 @@ export async function startConversation(d: AgentDeps): Promise<Conversation> {
     },
   };
 }
+
+export interface TypedConversation {
+  send: (text: string) => Promise<void>;
+  stop: () => Promise<void>;
+}
+
+/**
+ * "Type instead": the same Live agent, typed questions in, spoken answers out,
+ * with a live transcript. For noisy places, hearing loss, or no microphone.
+ */
+export async function startTypedConversation(
+  d: AgentDeps,
+  onAgentText: (text: string, done: boolean) => void,
+): Promise<TypedConversation> {
+  const live = getLiveGenerativeModel(d.ai, {
+    model: d.liveModel,
+    systemInstruction: SYSTEM,
+    tools: TOOLS as never,
+    generationConfig: {
+      responseModalities: [ResponseModality.AUDIO],
+      speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } },
+      outputAudioTranscription: {},
+    },
+  });
+  const session = await live.connect();
+  const ctx = new AudioContext({ sampleRate: 24000 });
+  let playAt = 0;
+  let open = true;
+  // Keep a copy of the spoken audio so a demo recording can include the agent's real voice.
+  const recorded: Int16Array[] = ((window as unknown as { __agentAudio?: Int16Array[] }).__agentAudio ??= []);
+
+  const playPcm = (b64: string) => {
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const pcm = new Int16Array(bytes.buffer, 0, Math.floor(bytes.length / 2));
+    recorded.push(pcm);
+    const buf = ctx.createBuffer(1, pcm.length, 24000);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < pcm.length; i++) ch[i] = pcm[i] / 32768;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    playAt = Math.max(playAt, ctx.currentTime);
+    src.start(playAt);
+    playAt += buf.duration;
+  };
+
+  void (async () => {
+    let said = "";
+    for await (const msg of session.receive()) {
+      if (!open) break;
+      const m = msg as {
+        type: string;
+        modelTurn?: { parts?: { inlineData?: { data: string; mimeType: string } }[] };
+        outputTranscription?: { text?: string };
+        turnComplete?: boolean;
+        functionCalls?: FunctionCall[];
+      };
+      if (m.type === "toolCall") {
+        for (const call of m.functionCalls ?? []) {
+          const ev: AgentEvent = { tool: call.name, args: (call.args ?? {}) as Record<string, unknown> };
+          d.onEvent(ev);
+          try {
+            ev.result = await runTool(call, d);
+          } catch (e) {
+            ev.error = String((e as Error).message ?? e);
+            ev.result = { error: ev.error };
+          }
+          d.onEvent(ev);
+          await session.sendFunctionResponses([{ id: call.id, name: call.name, response: ev.result as object }]);
+        }
+        continue;
+      }
+      for (const p of m.modelTurn?.parts ?? []) if (p.inlineData?.mimeType.startsWith("audio/")) playPcm(p.inlineData.data);
+      if (m.outputTranscription?.text) {
+        said += m.outputTranscription.text;
+        onAgentText(said, false);
+      }
+      if (m.turnComplete && said) {
+        onAgentText(said, true);
+        said = "";
+      }
+    }
+  })().catch((e) => onAgentText(`(Connection ended: ${(e as Error).message})`, true));
+
+  return {
+    send: async (text) => {
+      await ctx.resume();
+      await session.sendTextRealtime(text);
+    },
+    stop: async () => {
+      open = false;
+      await session.close().catch(() => {});
+      await ctx.close().catch(() => {});
+    },
+  };
+}

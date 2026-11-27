@@ -1,5 +1,5 @@
 import type { GenerativeModel } from "firebase/ai";
-import { startConversation, targetKey, type AgentEvent, type Conversation } from "../lib/agent";
+import { startConversation, startTypedConversation, targetKey, type AgentEvent, type Conversation, type TypedConversation } from "../lib/agent";
 import { lookup } from "../lib/blocklist";
 import { loadConfig, type AppConfig } from "../lib/config";
 import { runDeepCheck } from "../lib/deepCheck";
@@ -354,7 +354,7 @@ function onAgentEvent(e: AgentEvent) {
   if (!card) {
     card = el("div", undefined, "event");
     card.dataset.ev = JSON.stringify(e.args) + e.tool;
-    feed.prepend(card);
+    feed.append(card);
   }
   const target = String(e.args.url ?? e.args.target ?? "");
   const r = e.result as Record<string, unknown> | undefined;
@@ -371,6 +371,41 @@ function onAgentEvent(e: AgentEvent) {
             : r.none ? "Nothing scanned yet" : `Last scan: ${TITLES[(r.verdict as Verdict) ?? "safe"].title}`;
   card.replaceChildren(el("strong", `${TOOL_LABEL[e.tool] ?? e.tool}${target ? `: ${target}` : ""}`), el("span", status, "muted"));
 }
+
+// "Type instead": same Live agent, typed in, spoken out, with a transcript.
+let typed: TypedConversation | null = null;
+let agentBubble: HTMLElement | null = null;
+function agentDeps() {
+  return {
+    ai: svc.ai, app: svc.app, db: svc.db, liveModel: cfg.live_model,
+    deep: { model: cfg.deep_check_model, fallbackModel: cfg.deep_check_fallback_model, templateId: cfg.deep_check_template_id, search: cfg.deep_check_search },
+    lastScan: () => last,
+    onEvent: onAgentEvent,
+  };
+}
+$<HTMLFormElement>("type-form").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const input = $<HTMLInputElement>("type-input");
+  const text = input.value.trim();
+  if (!text) return;
+  if (onDeviceOnly) return showError("Asking AdLens uses Gemini Live in the cloud. Turn off On-device only to ask.");
+  showError();
+  input.value = "";
+  const feed = $("feed");
+  feed.append(el("div", text, "bubble me"));
+  try {
+    typed ??= await startTypedConversation(agentDeps(), (said, done) => {
+      agentBubble ??= feed.appendChild(el("div", "", "bubble agent"));
+      agentBubble.textContent = said;
+      if (done) agentBubble = null;
+      agentBubble?.scrollIntoView({ block: "nearest" });
+    });
+    await typed.send(last ? `${text}\n(The user's last AdLens scan is available through get_last_scan.)` : text);
+  } catch (e) {
+    typed = null;
+    showError(`Couldn't reach AdLens: ${(e as Error).message}`);
+  }
+};
 
 let frameTimer: number | undefined;
 async function setLiveCamera(on: boolean) {
@@ -409,15 +444,7 @@ async function toggleMic() {
   if (onDeviceOnly) return showError("Talking uses Gemini Live in the cloud. Turn off On-device only to talk.");
   $("mic-label").textContent = "Connecting…";
   try {
-    conv = await startConversation({
-      ai: svc.ai,
-      app: svc.app,
-      db: svc.db,
-      liveModel: cfg.live_model,
-      deep: { model: cfg.deep_check_model, fallbackModel: cfg.deep_check_fallback_model, templateId: cfg.deep_check_template_id, search: cfg.deep_check_search },
-      lastScan: () => last,
-      onEvent: onAgentEvent,
-    });
+    conv = await startConversation(agentDeps());
     btn.setAttribute("aria-pressed", "true");
     $("mic-label").textContent = "Stop";
     $("mic-status").textContent = last ? "Listening. Try: \"Is what I just scanned a scam?\"" : "Listening. Ask about a message, a call or a website.";
@@ -437,6 +464,7 @@ function switchTab(name: "check" | "ask") {
   $("tab-ask").hidden = name !== "ask";
   for (const b of document.querySelectorAll<HTMLButtonElement>(".tabbtn")) b.classList.toggle("active", b.dataset.tab === name);
   if (name === "check" && conv) void toggleMic();
+  if (name === "check" && typed) void typed.stop().then(() => (typed = null));
   if (name === "check") void setLiveCamera(false).then(() => ($<HTMLInputElement>("live-cam").checked = false));
 }
 for (const b of document.querySelectorAll<HTMLButtonElement>(".tabbtn")) b.onclick = () => switchTab(b.dataset.tab as "check" | "ask");
