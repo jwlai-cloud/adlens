@@ -55,6 +55,19 @@ service cloud.firestore {
           && request.resource.data.thumb is string && request.resource.data.thumb.size() <= 200000
           && request.resource.data.source in ['on_device', 'in_cloud']
           && request.resource.data.createdAt == request.time;
+
+        // The storyteller's own voice: up to 3 short 8 kHz WAV clips per story.
+        match /clips/{clipId} {
+          allow read: if request.auth != null;
+          allow create: if request.auth != null
+            && clipId in ['0', '1', '2']
+            && request.resource.data.keys().hasOnly(['text', 'audio', 'seconds', 'createdAt'])
+            && request.resource.data.text is string && request.resource.data.text.size() <= 600
+            && request.resource.data.audio is string && request.resource.data.audio.size() <= 700000
+            && request.resource.data.audio.matches('^data:audio/wav;base64,.*')
+            && request.resource.data.seconds is int && request.resource.data.seconds <= 25
+            && request.resource.data.createdAt == request.time;
+        }
       }
 
       match /questions/{qId} {
