@@ -139,8 +139,25 @@ async function scan(input: { imageB64?: string; text?: string; previewSrc?: stri
   $("result").scrollIntoView({ behavior: "smooth", block: "start" });
   lastInput = { imageB64: input.imageB64, text: input.text };
   try {
-    last = await runScan(scanModel, input);
+    let note = "";
+    const sleep = (ms: number) => new Promise<null>((r) => setTimeout(() => r(null), ms));
+    const first = runScan(scanModel, input);
+    // ponytail: fixed timeouts; Chrome's on-device model can stall silently on a cold start.
+    let r = nano === "available" ? await Promise.race([first, sleep(25_000)]) : await first;
+    if (!r && onDeviceOnly) {
+      r = await Promise.race([first, sleep(65_000)]);
+      if (!r) throw new Error("Gemini Nano is busy. Please try again in a moment.");
+    } else if (!r) {
+      note = "Gemini Nano took too long, so Gemini in the cloud checked it instead.";
+      r = await runScan(makeScanModel(svc.ai, cfg.scan_cloud_model, false, true), input);
+    }
+    last = r;
     renderResult(last);
+    if (note) {
+      const p = $("v-community");
+      p.hidden = false;
+      p.textContent = note;
+    }
     // Community reports for the link or phone found (skipped in on-device-only mode).
     const target = last.link || last.phone;
     if (target && !onDeviceOnly) {
