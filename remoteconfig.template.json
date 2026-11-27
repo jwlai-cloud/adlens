@@ -48,6 +48,27 @@
       },
       "valueType": "BOOLEAN",
       "description": "Add Google Search grounding to the deep check. Needs a billing-enabled project (free tier returns 429)"
+    },
+    "scan_cloud_model": {
+      "defaultValue": {
+        "value": "gemini-3.5-flash-lite"
+      },
+      "valueType": "STRING",
+      "description": "Cloud fallback for photo/screenshot/text scans when Gemini Nano isn't available"
+    },
+    "live_model": {
+      "defaultValue": {
+        "value": "gemini-3.1-flash-live-preview"
+      },
+      "valueType": "STRING",
+      "description": "Gemini Live API model for the Ask AdLens voice agent"
+    },
+    "tts_model": {
+      "defaultValue": {
+        "value": "gemini-3.8-flash-tts"
+      },
+      "valueType": "STRING",
+      "description": "Text-to-speech model for Read aloud"
     }
   }
 }

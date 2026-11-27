@@ -103,3 +103,81 @@ const pb = document.createElement("button");
 pb.textContent = "Probe models";
 pb.onclick = () => void probe();
 document.body.insertBefore(pb, out);
+
+// Probe: does the Live API connect on this project (free tier)?
+import { getLiveGenerativeModel, ResponseModality } from "firebase/ai";
+async function probeLive() {
+  out.textContent = "";
+  const s = initFirebase();
+  for (const model of ["gemini-3.1-flash-live-preview", "gemini-2.5-flash-native-audio-preview-12-2025"]) {
+    try {
+      const live = getLiveGenerativeModel(s.ai, {
+        model,
+        generationConfig: { responseModalities: [ResponseModality.AUDIO] },
+        tools: [{ functionDeclarations: [{ name: "check_link", description: "Check a URL for scams", parameters: { type: "object", properties: { url: { type: "string" } }, required: ["url"] } as never }] }],
+      });
+      const t0 = performance.now();
+      const session = await live.connect();
+      await session.sendTextRealtime("Please check the link https://cheap-sneakers.example/sale for me.");
+      let got = "";
+      for await (const msg of session.receive()) {
+        got = JSON.stringify(msg).slice(0, 200);
+        if ((msg as { type: string }).type === "toolCall" || (msg as { turnComplete?: boolean }).turnComplete) break;
+        if (performance.now() - t0 > 20000) break;
+      }
+      log(`live ${model}`, `OK ${Math.round(performance.now() - t0)} ms: ${got}`);
+      await session.close();
+    } catch (e) {
+      log(`live ${model}`, `ERR: ${String((e as Error).message).slice(0, 200)}`);
+    }
+  }
+  log("live probe done", "");
+}
+const lb = document.createElement("button");
+lb.textContent = "Probe Live";
+lb.onclick = () => void probeLive();
+document.body.insertBefore(lb, out);
+
+// Agent test without a microphone: same system prompt + tools, typed input, manual tool loop.
+import { SYSTEM, TOOLS, runTool } from "./lib/agent";
+async function testAgent() {
+  out.textContent = "";
+  const s = initFirebase();
+  const cfg = await loadConfig(s.app);
+  const live = getLiveGenerativeModel(s.ai, {
+    model: cfg.live_model,
+    systemInstruction: SYSTEM,
+    tools: TOOLS as never,
+    generationConfig: { responseModalities: [ResponseModality.AUDIO], outputAudioTranscription: {} },
+  });
+  const session = await live.connect();
+  const deps = {
+    ai: s.ai, app: s.app, db: s.db, liveModel: cfg.live_model,
+    deep: { model: cfg.deep_check_model, fallbackModel: cfg.deep_check_fallback_model, templateId: "", search: false },
+    lastScan: () => null, onEvent: () => {},
+  };
+  await session.sendTextRealtime("I got a text saying my parcel is held and I must pay a fee at https://parcelrush-redelivery.top/pay . Has anyone reported this number, +61 488 220 913? And is the link safe?");
+  let said = "";
+  const t0 = performance.now();
+  for await (const msg of session.receive()) {
+    const m = msg as { type: string; functionCalls?: { name: string; args: object; id?: string }[]; outputTranscription?: { text?: string }; turnComplete?: boolean };
+    if (m.type === "toolCall") {
+      for (const call of m.functionCalls ?? []) {
+        const tt = performance.now();
+        const result = await runTool(call as never, deps as never).catch((e) => ({ error: String(e.message) }));
+        log(`tool ${call.name} ${JSON.stringify(call.args)} (${Math.round(performance.now() - tt)} ms)`, result);
+        await session.sendFunctionResponses([{ id: call.id, name: call.name, response: result as object }]);
+      }
+    }
+    if (m.outputTranscription?.text) said += m.outputTranscription.text;
+    if (m.turnComplete && said) break;
+    if (performance.now() - t0 > 120000) break;
+  }
+  log("agent said", said || "(no transcript)");
+  await session.close();
+  log("agent test done", "");
+}
+const ab = document.createElement("button");
+ab.textContent = "Test agent";
+ab.onclick = () => void testAgent();
+document.body.insertBefore(ab, out);

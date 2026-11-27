@@ -13,7 +13,9 @@
     "zip": "npm run build && cd dist && zip -qr ../adlens.zip .",
     "test:rules": "firebase emulators:exec --project demo-adlens --only firestore,auth \"vitest run src/lib/blocklist.rules.test.ts\"",
     "preview": "vite preview --port 4173 --strictPort",
-    "dev": "vite --port 5175 --strictPort"
+    "dev": "vite --port 5175 --strictPort",
+    "app:dev": "vite --config vite.app.config.ts",
+    "app:build": "tsc --noEmit && vite build --config vite.app.config.ts"
   },
   "dependencies": {
     "firebase": "^13.4.0"

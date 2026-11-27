@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f6f3ec" />
+    <title>AdLens Live: is this a scam?</title>
+    <meta name="description" content="Point your camera at a suspicious ad, text or letter. AdLens checks it on your device first, then talks it through with you." />
+    <link rel="icon" href="/icon.png" />
+    <link rel="stylesheet" href="/src/app/app.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="brand"><span class="logo" aria-hidden="true"></span><span>AdLens <em>Live</em></span></div>
+      <label class="privacy" title="Never send anything to the cloud">
+        <input type="checkbox" id="privacy" />
+        <span>On-device only</span>
+      </label>
+    </header>
+
+    <div id="engine" class="engine" role="status"></div>
+
+    <main>
+      <!-- A warning a family member shared -->
+      <section id="shared" class="card shared" hidden></section>
+
+      <!-- CHECK -->
+      <section id="tab-check" class="tab">
+        <h1>Is this a scam?</h1>
+        <p class="lede">Take a photo of an ad, a text message or a letter. AdLens checks it <strong>on your device</strong> first.</p>
+
+        <div class="actions3">
+          <button class="big" id="btn-camera"><span class="ic ic-cam" aria-hidden="true"></span>Camera</button>
+          <label class="big" for="file"><span class="ic ic-img" aria-hidden="true"></span>Screenshot</label>
+          <button class="big" id="btn-text"><span class="ic ic-txt" aria-hidden="true"></span>Paste text</button>
+        </div>
+        <input type="file" id="file" accept="image/*" hidden />
+
+        <div id="camera" class="camera" hidden>
+          <video id="video" playsinline muted></video>
+          <div class="row">
+            <button class="btn" id="btn-snap">Check this</button>
+            <button class="btn ghost" id="btn-cam-cancel">Cancel</button>
+          </div>
+        </div>
+
+        <div id="paste" class="paste" hidden>
+          <textarea id="text" rows="5" placeholder="Paste the message, email or web address here"></textarea>
+          <div class="row">
+            <button class="btn" id="btn-check-text">Check it</button>
+            <button class="btn ghost" id="btn-text-cancel">Cancel</button>
+          </div>
+        </div>
+
+        <div class="samples">
+          <p class="muted">No scam handy? Try an example:</p>
+          <div class="sample-row">
+            <button class="sample" data-src="/samples/parcel-fee.png"><img src="/samples/parcel-fee.png" alt="Parcel fee text message" /><span>Parcel fee</span></button>
+            <button class="sample" data-src="/samples/hi-mum.png"><img src="/samples/hi-mum.png" alt="Hi Mum text message" /><span>"Hi Mum"</span></button>
+            <button class="sample" data-src="/samples/sneaker-ad.png"><img src="/samples/sneaker-ad.png" alt="Sneaker sale ad" /><span>90% off ad</span></button>
+            <button class="sample" data-src="/samples/legit-order.png"><img src="/samples/legit-order.png" alt="Order shipped text" /><span>Order update</span></button>
+          </div>
+        </div>
+
+        <section id="result" class="card result" hidden aria-live="polite">
+          <div class="verdict-row">
+            <span id="v-icon" class="v-icon" aria-hidden="true"></span>
+            <div>
+              <p id="v-kind" class="kind"></p>
+              <h2 id="v-title"></h2>
+            </div>
+          </div>
+          <p id="v-summary" class="summary"></p>
+          <ul id="v-reasons" class="reasons"></ul>
+          <div id="v-todo" class="todo">
+            <h3>What to do now</h3>
+            <ol id="v-actions"></ol>
+          </div>
+          <div id="v-found" class="found"></div>
+          <div class="preview-wrap"><img id="preview" alt="What you checked" hidden /></div>
+          <p id="v-community" class="community" hidden></p>
+          <div id="v-meta" class="meta"></div>
+          <div class="result-actions">
+            <button class="btn" id="btn-speak">Read aloud</button>
+            <button class="btn" id="btn-ask">Ask AdLens about this</button>
+            <button class="btn ghost" id="btn-second" hidden>Second opinion in the cloud</button>
+            <button class="btn ghost" id="btn-deep" hidden>Deep check the link</button>
+            <button class="btn ghost" id="btn-share">Warn my family</button>
+          </div>
+          <div id="deep-out" class="deep-out" hidden></div>
+          <div id="share-out" class="share-out" hidden></div>
+        </section>
+      </section>
+
+      <!-- ASK (Gemini Live) -->
+      <section id="tab-ask" class="tab" hidden>
+        <h1>Ask AdLens</h1>
+        <p class="lede">Talk it through, out loud. Ask "Is this real?", "What should I do?" or "I already paid, help."</p>
+        <div class="mic-wrap">
+          <button id="btn-mic" class="mic" aria-pressed="false"><span class="ic ic-mic" aria-hidden="true"></span><span id="mic-label">Start talking</span></button>
+          <p id="mic-status" class="muted">Voice runs in the cloud with Gemini Live.</p>
+        </div>
+        <label class="cam-toggle"><input type="checkbox" id="live-cam" /> Let AdLens see through the camera</label>
+        <video id="live-video" class="live-video" playsinline muted hidden></video>
+        <div id="feed" class="feed" aria-live="polite"></div>
+      </section>
+
+      <p id="error" class="error" hidden></p>
+    </main>
+
+    <nav class="tabs">
+      <button class="tabbtn active" data-tab="check"><span class="ic ic-shield" aria-hidden="true"></span>Check</button>
+      <button class="tabbtn" data-tab="ask"><span class="ic ic-mic" aria-hidden="true"></span>Ask</button>
+    </nav>
+
+    <script type="module" src="/src/app/main.ts"></script>
+  </body>
+</html>

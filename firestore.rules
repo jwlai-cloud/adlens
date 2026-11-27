@@ -18,5 +18,20 @@ service cloud.firestore {
         && request.resource.data.reports == resource.data.reports + 1;
       allow delete: if false;
     }
+
+    // "Warn my family" links: readable by anyone with the link, created once with a fixed shape.
+    match /shares/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['verdict', 'kind', 'summary', 'reasons', 'actions', 'link', 'createdAt'])
+        && request.resource.data.verdict in ['safe', 'suspicious', 'scam']
+        && request.resource.data.kind is string && request.resource.data.kind.size() <= 40
+        && request.resource.data.summary is string && request.resource.data.summary.size() <= 300
+        && request.resource.data.reasons is list && request.resource.data.reasons.size() <= 3
+        && request.resource.data.actions is list && request.resource.data.actions.size() <= 3
+        && request.resource.data.link is string && request.resource.data.link.size() <= 300
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
   }
 }

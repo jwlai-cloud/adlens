@@ -11,6 +11,10 @@ export const DEFAULTS = {
   /** Google Search grounding needs a billing-enabled project; free tier returns 429. */
   deep_check_search: false,
   flag_threshold: 45,
+  /** AdLens Live web app */
+  scan_cloud_model: "gemini-3.5-flash-lite",
+  live_model: "gemini-3.1-flash-live-preview",
+  tts_model: "gemini-3.8-flash-tts",
   auto_deep_check: false,
 };
 export type AppConfig = typeof DEFAULTS;
@@ -32,6 +36,9 @@ export async function loadConfig(app: FirebaseApp): Promise<AppConfig> {
     deep_check_template_id: getValue(rc, "deep_check_template_id").asString(),
     deep_check_search: getValue(rc, "deep_check_search").asBoolean(),
     flag_threshold: getValue(rc, "flag_threshold").asNumber(),
+    scan_cloud_model: getValue(rc, "scan_cloud_model").asString(),
+    live_model: getValue(rc, "live_model").asString(),
+    tts_model: getValue(rc, "tts_model").asString(),
     auto_deep_check: getValue(rc, "auto_deep_check").asBoolean(),
   };
 }

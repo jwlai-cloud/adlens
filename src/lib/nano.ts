@@ -3,11 +3,11 @@ import type { GenerativeModel } from "firebase/ai";
 export type NanoStatus = "available" | "downloadable" | "downloading" | "unavailable";
 
 /** Whether Gemini Nano can run in this browser right now. */
-export async function nanoStatus(): Promise<NanoStatus> {
+export async function nanoStatus(withImage = false): Promise<NanoStatus> {
   if (typeof LanguageModel === "undefined") return "unavailable";
   try {
     return (await LanguageModel.availability({
-      expectedInputs: [{ type: "text", languages: ["en"] }],
+      expectedInputs: [{ type: "text", languages: ["en"] }, ...(withImage ? [{ type: "image" as const }] : [])],
       expectedOutputs: [{ type: "text", languages: ["en"] }],
     })) as NanoStatus;
   } catch {
