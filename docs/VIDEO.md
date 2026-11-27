@@ -1,18 +1,23 @@
-# Demo video script (target 2:40, hard limit 3:00)
+# Demo video (AdLens Live)
 
-Record at 1920×1080. Chrome with the AdLens side panel open, demo pages from `npm run fixtures`. Add English captions. Upload to YouTube **by Sunday Nov 29**, because processing can take hours.
+File: `video/adlens-live-demo.mp4` (about 1:46, 1080p). Narration: Junwei's Personal Voice via `say`. Scene 8 is the agent's real Gemini Live voice.
 
-| Time | Screen | Voice-over |
-|---|---|---|
-| 0:00–0:20 | A social feed with a "brand sneakers 90% off" ad, then a click | "Fake shops buy ads. Brand sneakers at 90% off, a checkout that only takes bank transfer. Shoppers find out after they pay. AdLens tells them before." |
-| 0:20–0:35 | Title card: AdLens + "Gemini Nano on-device · Gemini in the cloud · Firebase AI Logic" | "AdLens is a Chrome extension. Gemini Nano checks every page on your device. Gemini in the cloud only steps in when it needs to dig deeper." |
-| 0:35–0:55 | `legit-shop.html` → green **Looks legit**, zoom on the **On-device · Gemini Nano** pill and the ms timing | "A normal shop: checked on-device in under a second. Nothing left the laptop." |
-| 0:55–1:25 | `fake-shop.html` → red **Likely a scam**, reasons, then expand the red flags | "This one: brand-name sneakers at 90% off on a site that isn't the brand's, bank transfer only, a Gmail support address. Rule-based checks plus Gemini Nano, still on-device." |
-| 1:25–1:55 | Click **Run deep check** → cloud verdict | "For risky pages, Deep check sends only the URL, title, red flags and a short redacted excerpt to Gemini in the cloud, which opens the page itself, like a first-time visitor, and confirms the verdict." |
-| 1:55–2:10 | Reload the fake shop → **Shared blocklist** pill, "No AI call needed" | "The result goes into a shared blocklist in Firestore. The next shopper gets the answer instantly, with no AI call at all." |
-| 2:10–2:25 | Turn off the Nano flag (or use a second profile) → same page shows the **Cloud** pill. Then turn on **On-device only** | "No Gemini Nano on this machine? The same check runs in the cloud, with personal data removed first. Want full privacy? On-device only never touches the cloud." |
-| 2:25–2:40 | Architecture diagram from the README | "Firebase AI Logic hybrid inference, URL context, Firestore, Remote Config and App Check. AdLens: know before you pay." |
+Rebuild:
+```bash
+node scripts/record-app.mjs           # phone-size capture of the hosted app + agent audio
+python3 scripts/make-app-video.py     # cut, headlines, narration, loudness
+```
+On-device screenshots live in `video/nano/` (taken from real Chrome with Gemini Nano).
 
-Tips
-- Show the On-device → Cloud switch early. Judges may only watch the video.
-- No real brand logos on screen. The demo pages use text only.
+| # | Scene | Headline | Narration |
+|---|---|---|---|
+| 01 | Hook: the four sample scams | Is this one real? | Every day, scammers text, email and advertise to older people. A parcel fee. A "Hi Mum, this is my new number." Sneakers at ninety percent off. The question is always the same. Is this one real? |
+| 02 | Title card | AdLens Live | This is AdLens Lyve. Point your camera at it, and get a plain answer. |
+| 03 | On-device: real Chrome + Gemini Nano screenshots | Checked on your device | On a laptop with Gemini Nano, Chrome checks the screenshot right on the device. Nothing is uploaded. It says this looks like a scam, explains why, and tells you exactly what to do now. |
+| 04 | Phone: "Hi Mum" scan (cloud fallback) | "Hi Mum, new number" | On a phone without Gemini Nano, the same check runs in the cloud, and the badge says so. Here's a "Hi Mum" text from a new number. AdLens spots the family impersonation trick. |
+| 05 | Warn my family -> family view | Warn my family | Tap "Warn my family" and send them a link. They see the warning and what to do. Never your photo. |
+| 06 | 90% off ad -> deep check the link | Deep check the link | When there's a link, AdLens can check it in the cloud. Gemini opens the page itself, so you don't have to. |
+| 07 | Ask tab: typed question, tool cards | Ask AdLens | And you can just ask. AdLens uses the Gemini Lyve API. It's an agent with tools. It looks at your last scan, checks the link, and looks up reports from other people. |
+| 08 | Agent answers in its own voice (Gemini Live audio, recorded) | It answers out loud | (agent voice) |
+| 09 | How it works card | How it works | Under the hood, it's Firebase AI Logic hybrid inference. On-device first for private scans, and the cloud only when it helps. Gemini Lyve with function calling. Firestore for shared reports and family links. Remote Config for every model. And App Check on every call. |
+| 10 | Close: URL + repo | AdLens Live: know before you pay. | AdLens Lyve. Know before you pay. |
