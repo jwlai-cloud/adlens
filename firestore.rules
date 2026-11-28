@@ -22,7 +22,9 @@ service cloud.firestore {
 
     // "Warn my family" links: readable by anyone with the link, created once with a fixed shape.
     match /shares/{id} {
-      allow read: if true;
+      // get only: a share opens by its link. Listing would reveal everyone's shares.
+      allow get: if true;
+      allow list: if false;
       allow create: if request.auth != null
         && request.resource.data.keys().hasOnly(['verdict', 'kind', 'summary', 'reasons', 'actions', 'link', 'createdAt'])
         && request.resource.data.verdict in ['safe', 'suspicious', 'scam']
@@ -37,29 +39,51 @@ service cloud.firestore {
 
     // Memory Lane family books. The book ID is a long random string shared only by invite link.
     match /books/{bookId} {
-      allow read: if request.auth != null;
+      // get only: opening a book needs its ID. Listing would reveal every family's book.
+      allow get: if request.auth != null;
+      allow list: if false;
+      // The browser that creates a book owns it: only the owner adds, edits or deletes stories.
+      function isOwner() {
+        return request.auth != null
+          && get(/databases/$(database)/documents/books/$(bookId)).data.get('ownerUid', '') == request.auth.uid;
+      }
       allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(['name', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['name', 'ownerUid', 'createdAt'])
         && request.resource.data.name is string && request.resource.data.name.size() <= 80
+        && request.resource.data.ownerUid == request.auth.uid
         && request.resource.data.createdAt == request.time;
+      // Books made before owners existed: the first signed-in user to claim one becomes its owner.
+      allow update: if request.auth != null
+        && !('ownerUid' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['ownerUid'])
+        && request.resource.data.ownerUid == request.auth.uid;
 
       match /stories/{storyId} {
         allow read: if request.auth != null;
-        allow create: if request.auth != null
+        allow update: if isOwner()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'story'])
+          && request.resource.data.title is string && request.resource.data.title.size() <= 120
+          && request.resource.data.story is string && request.resource.data.story.size() <= 4000;
+        allow delete: if isOwner();
+        allow create: if isOwner()
           && request.resource.data.keys().hasOnly(['title', 'story', 'quote', 'people', 'place', 'year', 'source', 'thumb', 'details', 'createdAt'])
           && request.resource.data.title is string && request.resource.data.title.size() <= 120
           && request.resource.data.story is string && request.resource.data.story.size() <= 4000
           && request.resource.data.quote is string && request.resource.data.quote.size() <= 400
           && request.resource.data.people is list && request.resource.data.people.size() <= 6
           && request.resource.data.details is list && request.resource.data.details.size() <= 30
+          && request.resource.data.place is string && request.resource.data.place.size() <= 120
+          && request.resource.data.year is string && request.resource.data.year.size() <= 40
           && request.resource.data.thumb is string && request.resource.data.thumb.size() <= 200000
+          && request.resource.data.thumb.matches('^data:image/jpeg;base64,.*')
           && request.resource.data.source in ['on_device', 'in_cloud']
           && request.resource.data.createdAt == request.time;
 
         // The storyteller's own voice: up to 3 short 8 kHz WAV clips per story.
         match /clips/{clipId} {
           allow read: if request.auth != null;
-          allow create: if request.auth != null
+          allow delete: if isOwner();
+          allow create: if isOwner()
             && clipId in ['0', '1', '2']
             && request.resource.data.keys().hasOnly(['text', 'audio', 'seconds', 'createdAt'])
             && request.resource.data.text is string && request.resource.data.text.size() <= 600
@@ -72,6 +96,7 @@ service cloud.firestore {
 
       match /questions/{qId} {
         allow read: if request.auth != null;
+        allow delete: if isOwner();
         allow create: if request.auth != null
           && request.resource.data.keys().hasOnly(['text', 'from', 'createdAt'])
           && request.resource.data.text is string && request.resource.data.text.size() <= 200
